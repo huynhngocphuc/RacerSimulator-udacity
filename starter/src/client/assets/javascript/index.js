@@ -88,11 +88,23 @@ async function delay(ms) {
 async function handleCreateRace() {
 	console.log("in create race")
 
-	// render starting UI
-	renderAt('#race', renderRaceStartView(store.track_name))
-
-	// TODO - Get player_id and track_id from the store
 	
+	// TODO - Get player_id and track_id from the store
+	const playerId = store.player_id;
+	const trackId = store.track_id;
+	if (!playerId || !trackId) {
+		alert("You dont have track and racer, Please select to play a game!");
+		return
+	}
+	try {
+		const startRace = await createRace(playerId,trackId)
+		console.log('createRace::',startRace);
+		renderAt('#race', renderRaceStartView(startRace.Track))
+	} catch (error) {
+		
+	}
+	// render starting UI
+	// renderAt('#race', renderRaceStartView(store.track_name))
 	// const race = TODO - call the asynchronous method createRace, passing the correct parameters
 
 	// TODO - update the store with the race id in the response
@@ -319,6 +331,15 @@ function renderAt(element, html) {
 // API CALLS ------------------------------------------------
 
 const SERVER = 'http://localhost:3001'
+const URL_API = {
+	ALL_TRACKS: '/api/tracks',
+	ALL_CARS: '/api/cars',
+	INFO_SINGLE_RACE: '/api/races/${id}',
+	CREATE_RACE: '/api/races',
+	BEGIN_RACE: '/api/races/${id}/start',
+    ACCELERATE_CAR: '/api/races/${id}/accelerate',
+	
+}
 
 function defaultFetchOpts() {
 	return {
@@ -332,17 +353,30 @@ function defaultFetchOpts() {
 
 // TODO - Make a fetch call (with error handling!) to each of the following API endpoints 
 
-function getTracks() {
-	console.log(`calling server :: ${SERVER}/api/tracks`)
+async function getTracks() {
+	console.log(`calling server :: ${SERVER}/${URL_API.ALL_TRACKS}`)
 	// GET request to `${SERVER}/api/tracks`
-
+	try {
+		const response = await fetch(`${SERVER}/${URL_API.ALL_TRACKS}`, {...defaultFetchOpts()})
+		const data = await response.json()
+		return data
+	} catch (error) {
+		console.log("🚀 ~ getTracks ~ error:", error)
+	}
 	// TODO: Fetch tracks
 	// TIP: Don't forget a catch statement!
 }
 
-function getRacers() {
+async function getRacers() {
 	// GET request to `${SERVER}/api/cars`
-
+	try {
+		const response = await fetch(`${SERVER}/${URL_API.ALL_CARS}`, {...defaultFetchOpts()})
+		const data = await response.json()
+		console.log("🚀 ~ getRacers ~ data:", data)
+		return data
+	} catch (error) {
+		console.log("🚀 ~ getTracks ~ error:", error)
+	}
 	// TODO: Fetch racers
 	// TIP: Do a file search for "TODO" to make sure you find all the things you need to do! There are even some vscode plugins that will highlight todos for you
 }
