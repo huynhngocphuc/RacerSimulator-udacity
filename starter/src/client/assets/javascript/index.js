@@ -28,8 +28,7 @@ async function onPageLoad() {
       renderAt("#racers", html);
     });
   } catch (error) {
-    console.log("Problem getting tracks and racers ::", error.message);
-    console.error(error);
+    console.log("🚀 ~ onPageLoad ~ error:", error)
   }
 }
 
@@ -38,7 +37,11 @@ function setupClickHandlers() {
     "click",
     function (event) {
       const { target } = event;
+      console.log("🚀 ~ setupClickHandlers ~ target:", target)
 
+      let parent = target.parentElement
+    
+     
       // Race track form field
       if (target.matches(".card.track")) {
         handleSelectTrack(target);
@@ -71,7 +74,7 @@ function setupClickHandlers() {
     false
   );
 }
-
+ 
 async function delay(ms) {
   try {
     return await new Promise((resolve) => setTimeout(resolve, ms));
@@ -102,12 +105,16 @@ async function handleCreateRace() {
     console.log("createRace::", race);
     renderAt("#race", renderRaceStartView(race.Track));
 
-    store.race_id = parseInt(race.ID);
+    store.race_id = parseInt(race.ID) - 1;
     await runCountdown();
     await startRace(store.race_id);
     await runRace(store.race_id);
-  } catch (error) {}
-  // render starting UI
+
+  } catch (error) {
+    console.log("🚀 ~ handleCreateRace ~ error:", error)
+    
+  }
+
   // renderAt('#race', renderRaceStartView(store.track_name))
   // const race = TODO - call the asynchronous method createRace, passing the correct parameters
 
@@ -129,7 +136,6 @@ function runRace(raceID) {
   return new Promise((resolve) => {
     const intervalRunRace = setInterval(async () => {
       const dataRace = await getRace(raceID);
-      console.log("🚀 ~ setInterval ~ dataRace:", dataRace);
 
       if (dataRace.status == "in-progress") {
         renderAt("#leaderBoard", raceProgress(dataRace.positions));
@@ -243,7 +249,13 @@ function renderRacerCard(racer) {
   const { id, driver_name, top_speed, acceleration, handling } = racer;
   // OPTIONAL: There is more data given about the race cars than we use in the game, if you want to factor in top speed, acceleration,
   // and handling to the various vehicles, it is already provided by the API!
-  return `<h4 class="card racer" id="${id}">${driver_name}</h3>`;
+  return `
+  <h4 class="card racer" id="${id}">${driver_name}
+    <span >Top Speed: ${top_speed}</span>
+    <span >acceleration: ${acceleration}</span>
+    <span >handling: ${handling}</span>
+  </h4>
+  `;
 }
 
 function renderTrackCards(tracks) {
@@ -279,7 +291,6 @@ function renderRaceStartView(track) {
   return `
 		<header>
 			<h1>Race: ${track.name}</h1>
-		</header>
 		<main id="two-columns">
 			<section id="leaderBoard">
 				${renderCountdown(3)}
@@ -360,9 +371,7 @@ const SERVER = "http://localhost:3001";
 const URL_API = {
   ALL_TRACKS: "/api/tracks",
   ALL_CARS: "/api/cars",
-  CREATE_RACE: "/api/races",
-  BEGIN_RACE: "/api/races/${id}/start",
-  ACCELERATE_CAR: "/api/races/${id}/accelerate",
+  CREATE_RACE: "/api/races"
 };
 
 function defaultFetchOpts() {
@@ -419,14 +428,15 @@ function createRace(player_id, track_id) {
     body: JSON.stringify(body),
   })
     .then((res) => res.json())
-    .catch((err) => console.log("Problem with createRace request::", err));
+    .catch((err) => {
+      console.log("🚀 ~ createRace ~ err:", err)
+    })
 }
 
 async function getRace(id) {
   // GET request to `${SERVER}/api/races/${id}`
   const raceId = parseInt(id);
   try {
-    console.log(`${SERVER}${URL_API.CREATE_RACE}/${raceId}`);
     const response = await fetch(`${SERVER}${URL_API.CREATE_RACE}/${raceId}`, {
       ...defaultFetchOpts(),
     });
