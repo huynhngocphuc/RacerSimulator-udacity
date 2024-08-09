@@ -28,7 +28,7 @@ async function onPageLoad() {
       renderAt("#racers", html);
     });
   } catch (error) {
-    console.log("🚀 ~ onPageLoad ~ error:", error)
+    console.log("🚀 ~ onPageLoad ~ error:", error);
   }
 }
 
@@ -37,11 +37,10 @@ function setupClickHandlers() {
     "click",
     function (event) {
       const { target } = event;
-      console.log("🚀 ~ setupClickHandlers ~ target:", target)
+      console.log("🚀 ~ setupClickHandlers ~ target:", target);
 
-      let parent = target.parentElement
-    
-     
+      let parent = target.parentElement;
+
       // Race track form field
       if (target.matches(".card.track")) {
         handleSelectTrack(target);
@@ -74,7 +73,7 @@ function setupClickHandlers() {
     false
   );
 }
- 
+
 async function delay(ms) {
   try {
     return await new Promise((resolve) => setTimeout(resolve, ms));
@@ -105,14 +104,12 @@ async function handleCreateRace() {
     console.log("createRace::", race);
     renderAt("#race", renderRaceStartView(race.Track));
 
-    store.race_id = parseInt(race.ID) - 1;
+    store.race_id = parseInt(race.ID);
     await runCountdown();
-    await startRace(store.race_id);
-    await runRace(store.race_id);
-
+    await startRace(store.race_id - 1);
+    await runRace(store.race_id - 1);
   } catch (error) {
-    console.log("🚀 ~ handleCreateRace ~ error:", error)
-    
+    console.log("🚀 ~ handleCreateRace ~ error:", error);
   }
 
   // renderAt('#race', renderRaceStartView(store.track_name))
@@ -140,8 +137,8 @@ function runRace(raceID) {
       if (dataRace.status == "in-progress") {
         renderAt("#leaderBoard", raceProgress(dataRace.positions));
       } else if (dataRace.status == "finished") {
-        clearInterval(intervalRunRace);
         renderAt("#race", resultsView(dataRace.positions));
+        clearInterval(intervalRunRace);
         resolve(dataRace);
       }
     }, 1000);
@@ -218,7 +215,7 @@ function handleSelectTrack(target) {
 }
 
 function handleAccelerate() {
-  accelerate(store.race_id)
+  accelerate(store.race_id - 1)
     .then(() => console.log("accelerate clicked"))
     .catch((error) => {
       console.log("🚀 ~ handleAccelerate ~ error:", error);
@@ -307,28 +304,17 @@ function renderRaceStartView(track) {
 }
 
 function resultsView(positions) {
-  userPlayer.driver_name += " (you)";
-  let count = 1;
-
-  const results = positions.map((p) => {
-    return `
-			<tr>
-				<td>
-					<h3>${count++} - ${p.driver_name}</h3>
-				</td>
-			</tr>
-		`;
-  });
+  positions.sort((a, b) => (a.final_position > b.final_position ? 1 : -1));
 
   return `
 		<header>
 			<h1>Race Results</h1>
 		</header>
 		<main>
-			<h3>Race Results</h3>
-			<p>The race is done! Here are the final results:</p>
-			${results.join("")}
-			<a href="/race">Start a new race</a>
+			${raceProgress(positions)}
+		<div class="restart">
+			<a href="/race" class="reStartRace">Start a new race</a>
+		</div>
 		</main>
 	`;
 }
@@ -371,7 +357,7 @@ const SERVER = "http://localhost:3001";
 const URL_API = {
   ALL_TRACKS: "/api/tracks",
   ALL_CARS: "/api/cars",
-  CREATE_RACE: "/api/races"
+  CREATE_RACE: "/api/races",
 };
 
 function defaultFetchOpts() {
@@ -429,8 +415,8 @@ function createRace(player_id, track_id) {
   })
     .then((res) => res.json())
     .catch((err) => {
-      console.log("🚀 ~ createRace ~ err:", err)
-    })
+      console.log("🚀 ~ createRace ~ err:", err);
+    });
 }
 
 async function getRace(id) {
@@ -456,7 +442,7 @@ async function startRace(id) {
     });
     return data;
   } catch (err) {
-    console.log("🚀 ~ startRace ~ err:", err)
+    console.log("🚀 ~ startRace ~ err:", err);
   }
 }
 
